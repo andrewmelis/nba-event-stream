@@ -57,13 +57,17 @@
              (let [{:keys [gamecode game-id]} game-record]
                (.contains gamecode team-abbreviation))) game-headers)))
 
-
-              ;; (filter #(.contains (:gamecode (last (parse-gameheaders (scores)))) "MEM")
-            
-;; (let [{:keys [headers rowSet]} (first (filter #(= "GameHeader" (:name %)) (:resultSets (scores))))]
-;;   (map #(zipmap headers %) rowSet))
-
-;; all "resultSets"
-;; (map :name (:resultSets (scores)))
+(defn example-play-by-play []
+  (client/get "http://stats.nba.com/stats/playbyplay?gameID=0011500104&StartPeriod=0&EndPeriod=0"))
 
 
+(defn parse-play-by-play [play-by-play-response]
+  (let [parsed-response (-> play-by-play-response
+                            (:body)
+                            (json/parse-string true)
+                            (:resultSets))]
+        ;; {:keys [headers rowSet]} parsed-response
+        ;; headers (nba-headers->keywords headers)]
+    parsed-response))
+
+    ;; (map #(zipmap headers %) rowSet)))
