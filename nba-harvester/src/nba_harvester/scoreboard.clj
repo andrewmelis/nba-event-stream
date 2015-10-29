@@ -2,7 +2,9 @@
   (:require [clj-http.client :as client]
             [clj-time.core :as t]
             [clj-time.format :as f]
-            [cheshire.core :as json]))
+            [clj-time.local :as l]
+            [cheshire.core :as json]
+            [net.cgrand.enlive-html :as html]))
 
 (defn base-url []
   "http://stats.nba.com/stats")
