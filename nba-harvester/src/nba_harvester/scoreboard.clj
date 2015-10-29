@@ -53,9 +53,6 @@
              (let [{:keys [gamecode game-id]} game-record]
                (.contains gamecode team-abbreviation))) game-headers)))
 
-(defn example-play-by-play []
-  (client/get "http://stats.nba.com/stats/playbyplay?gameID=0021500016&StartPeriod=0&EndPeriod=0"))
-
 (defn next-try []
   (client/get "http://data.nba.com/data/10s/html/nbacom/2015/gameinfo/20151028/0021500017_playbyplay_csi.html"))
 
@@ -71,8 +68,7 @@
         headers (nba-headers->keywords headers)]
     (map #(zipmap headers %) rowSet)))
 
-
-(defn play-by-play []
+(defn raw-play-by-play []
   (client/get "http://data.nba.com/5s/json/cms/noseason/scoreboard/20151028/games.json"))
 
 (defn parse-play-by-play [raw-play-by-play]
