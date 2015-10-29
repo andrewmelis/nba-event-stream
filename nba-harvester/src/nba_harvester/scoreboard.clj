@@ -12,12 +12,9 @@
 (defn scoreboard-endpoint []
   "/scoreboard")
 
-(defn last-game-day []
-  (t/date-time 2015 10 23))
-
 (defn request-formatted-date
-  ([] (f/unparse (f/formatter "MM/dd/yyyy") (t/now)))
-  ([date] (f/unparse (f/formatter "MM/dd/yyyy") date)))
+  ([] (request-formatted-date (t/today)))
+  ([date] (f/unparse-local-date (f/formatter "MM/dd/yyyy") date)))
 
 (defn scoreboard-params [& {:keys [game-date league-id day-offest]
                             :or {game-date (request-formatted-date)
@@ -29,15 +26,12 @@
     (clojure.string/join "&" [day-offset-str league-id-str game-date-str])))
 
 (defn scoreboard-request []
-  (str (base-url) (scoreboard-endpoint) "?" (scoreboard-params :game-date (request-formatted-date (last-game-day)))))
+  (str (base-url) (scoreboard-endpoint) "?" (scoreboard-params :game-date (request-formatted-date))))
 
 (defn scores []
   (-> (client/get (scoreboard-request))
       :body
       (json/parse-string true)))
-
-(defn available-games []
-  (filter #(= "Available" (:name %)) (:resultSets (scores))))
 
 (defn nba-headers->keywords [headers]
   (->> headers
@@ -60,16 +54,31 @@
                (.contains gamecode team-abbreviation))) game-headers)))
 
 (defn example-play-by-play []
-  (client/get "http://stats.nba.com/stats/playbyplay?gameID=0011500104&StartPeriod=0&EndPeriod=0"))
+  (client/get "http://stats.nba.com/stats/playbyplay?gameID=0021500016&StartPeriod=0&EndPeriod=0"))
 
+(defn next-try []
+  (client/get "http://data.nba.com/data/10s/html/nbacom/2015/gameinfo/20151028/0021500017_playbyplay_csi.html"))
+
+"http://data.nba.com/data/10s/html/nbacom/2015/gameinfo/20151028/0021500017_playbyplay_csi.html"
 
 (defn parse-play-by-play [play-by-play-response]
   (let [parsed-response (-> play-by-play-response
                             (:body)
                             (json/parse-string true)
-                            (:resultSets))]
-        ;; {:keys [headers rowSet]} parsed-response
-        ;; headers (nba-headers->keywords headers)]
-    parsed-response))
+                            (:resultSets)
+                            (first))
+        {:keys [headers rowSet]} parsed-response
+        headers (nba-headers->keywords headers)]
+    (map #(zipmap headers %) rowSet)))
 
-    ;; (map #(zipmap headers %) rowSet)))
+
+(defn play-by-play []
+  (client/get "http://data.nba.com/5s/json/cms/noseason/scoreboard/20151028/games.json"))
+
+(defn parse-play-by-play [raw-play-by-play]
+  (-> raw-play-by-play
+      (:body)
+      (json/parse-string true)
+      (:sports_content)
+      (:games)
+      (:game)))
