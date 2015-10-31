@@ -1,5 +1,6 @@
 (ns nba-harvester.scoreboard
-  (:require [clj-http.client :as client]
+  (:require [clojure.data :as data]
+            [clj-http.client :as client]
             [clj-time.core :as t]
             [clj-time.format :as f]
             [clj-time.local :as l]
@@ -53,10 +54,79 @@
              (let [{:keys [gamecode game-id]} game-record]
                (.contains gamecode team-abbreviation))) game-headers)))
 
-(defn next-try []
-  (client/get "http://data.nba.com/data/10s/html/nbacom/2015/gameinfo/20151028/0021500017_playbyplay_csi.html"))
+;; play by play stuff
 
-"http://data.nba.com/data/10s/html/nbacom/2015/gameinfo/20151028/0021500017_playbyplay_csi.html"
+(defn fetch-url [url]
+  (html/html-resource (java.net.URL. url)))
+
+
+;; (defn game-id->play-by-play-url [game-id]
+;;   (str "http://data.nba.com/data/10s/html/nbacom/"
+;;        (current-year)
+;;        "/gameinfo/"
+;;        (date) ; no slashes this time
+;;        "/"
+;;        game-id
+;;        "_playbyplay_csi.html"))
+
+(def table-record
+  '({:tag :td,
+     :attrs {:class "nbaGIPbPLft"},
+     :content (" ")}
+    {:tag :td,
+     :attrs {:class "nbaGIPbPMidScore"},
+     :content ("10:56 " {:tag :br,
+                         :attrs nil,
+                         :content nil} "[HOU 3-1]\n            ")}
+    {:tag :td,
+     :attrs {:class "nbaGIPbPRgtScore"},
+     :content (" Lawson Free Throw 1 of 2 (1 PTS) ")}))
+
+;; eventually turn this into a hash
+(defn table-record->event-string [table-record]
+  (->> table-record
+       (map html/text)
+       (map clojure.string/trim)
+
+
+
+;; WIP
+;; (let [raw-content (fetch-url play-by-play-url)]
+;;                             (->> (html/select raw-content [:tr])
+;;                                  (map :content)
+;;                                  (map (fn [event]
+;;                                         (remove #(= String (class %)) event)))
+;;                                  (take 15)
+;;                                  (last)))
+(defn play-by-play-for-game [game-id]
+  (let [raw-content (fetch-url (game-id->play-by-play-url game-id))]
+        (->> (html/select raw-content [:tr])
+             (map :content)
+             (map (fn [event]
+                    (remove #(= String (class %)) event)))
+             (map table-record->event-string))))
+                  ;; (drop 1) ; drop teams? shouldn't i know the opponents by now?
+             
+             
+
+             ;; (clojure.string/trim (html/text (second (last (take 10 (let [raw-content (fetch-url play-by-play-url)]
+             ;;          (->> (html/select raw-content [:tr])
+             ;;               (map :content)
+             ;;               (map (fn [event]
+             ;;                      (remove #(= String (class %)) event))))))))))
+(def play-by-play-url "http://data.nba.com/data/10s/html/nbacom/2015/gameinfo/20151030/0021500030_playbyplay_csi.html")
+
+
+;; how to parse the table
+
+;; (remove #(= String (class %)) (-> (fetch-url play-by-play-url)
+;;                                   (html/select [:tr])
+;;                                   (:content)))
+
+;; ;; diff for two snapshots
+;; (->> (clojure.data/diff old-pbp new-pbp)
+;;      (second) ; get things "only-in-b"
+;;      (remove nil?)
 
 (defn parse-play-by-play [play-by-play-response]
   (let [parsed-response (-> play-by-play-response
@@ -68,13 +138,13 @@
         headers (nba-headers->keywords headers)]
     (map #(zipmap headers %) rowSet)))
 
-(defn raw-play-by-play []
-  (client/get "http://data.nba.com/5s/json/cms/noseason/scoreboard/20151028/games.json"))
+;; (defn raw-play-by-play []
+;;   (client/get "http://data.nba.com/5s/json/cms/noseason/scoreboard/20151028/games.json"))
 
-(defn parse-play-by-play [raw-play-by-play]
-  (-> raw-play-by-play
-      (:body)
-      (json/parse-string true)
-      (:sports_content)
-      (:games)
-      (:game)))
+;; (defn parse-play-by-play [raw-play-by-play]
+;;   (-> raw-play-by-play
+;;       (:body)
+;;       (json/parse-string true)
+;;       (:sports_content)
+;;       (:games)
+;;       (:game)))
