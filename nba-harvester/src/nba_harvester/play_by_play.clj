@@ -10,18 +10,17 @@
 (defn fetch-url [url]
   (html/html-resource (java.net.URL. url)))
 
-(def play-by-play-url "http://data.nba.com/data/10s/html/nbacom/2015/gameinfo/20151030/0021500030_playbyplay_csi.html")
-
-;; GENERALIZE BUILDING PLAY BY PLAY LATER
-
-;; (defn game-id->play-by-play-url [game-id]
-;;   (str "http://data.nba.com/data/10s/html/nbacom/"
-;;        (current-year)
-;;        "/gameinfo/"
-;;        (date) ; no slashes this time
-;;        "/"
-;;        game-id
-;;        "_playbyplay_csi.html"))
+(defn game-id->play-by-play-url
+  "assumes game is from today. CHANGE LATER"
+  [game-id]
+  (let [date-time (t/today)]
+    (str "http://data.nba.com/data/10s/html/nbacom/"
+         (f/unparse-local-date (f/formatters :year) date-time)
+         "/gameinfo/"
+         (f/unparse-local-date (f/formatters :basic-date) date-time)
+         "/"
+         game-id
+         "_playbyplay_csi.html")))
 
 ;; eventually turn this into a hash
 (defn table-record->event-string [table-record]
@@ -40,8 +39,6 @@
              (map (fn [event]
                     (remove #(= String (class %)) event)))
              (map table-record->event-string))))
-
-;; diff machine
 
 (def last-pbp (atom []))
 
