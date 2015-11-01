@@ -8,7 +8,8 @@
                  [clj-http "2.0.0"]
                  [clj-time "0.11.0"]
                  [cheshire "5.5.0"]
-                 [enlive "1.1.6"]]
-  :main ^:skip-aot nba-harvester.core
+                 [enlive "1.1.6"]
+                 [jarohen/chime "0.1.6"]]
+  :main nba-harvester.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

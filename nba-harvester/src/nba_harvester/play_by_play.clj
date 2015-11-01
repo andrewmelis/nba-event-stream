@@ -17,9 +17,11 @@
     (str "http://data.nba.com/data/10s/html/nbacom/"
          (f/unparse-local-date (f/formatters :year) date-time)
          "/gameinfo/"
-         (f/unparse-local-date (f/formatters :basic-date) date-time)
+         "20151031"
+         ;; (f/unparse-local-date (f/formatters :basic-date) date-time)
          "/"
-         game-id
+         "0021500038"
+         ;; game-id
          "_playbyplay_csi.html")))
 
 ;; eventually turn this into a hash
