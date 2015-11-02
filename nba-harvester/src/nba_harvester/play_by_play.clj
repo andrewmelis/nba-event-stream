@@ -45,7 +45,7 @@
 
 ;; DIFF MACHINE
 
-(def last-pbp (atom []))
+(def last-pbp (atom ())) ; should this be seq or vector?
 
 ;; (map (fn [event num]
 ;;        (assoc {}
@@ -56,11 +56,11 @@
   "accepts a play-by-play list and compares to last saved pbp list
   saves input seq as side-effect"
   [new-pbp-xs]
-  (let [new-events (->> (data/diff @last-pbp new-pbp-xs)
-                        (second)
-                        (partition-by #(nil? %)) ; HACK to avoid duplicates caused by updated pbp events. 
-                        (last)
-                        (vec))]
+  (let [new-events (if (empty? @last-pbp)
+                     new-pbp-xs
+                     (drop-while #(<= (:event-num %)
+                                      (:event-num (last @last-pbp)))
+                                 new-pbp-xs))]
     (println "last-pbp: " @last-pbp)
     (println "new-events: " new-events)
     (swap! last-pbp concat new-events) ; note SIDE-EFFECT -- also, is concat bad?
