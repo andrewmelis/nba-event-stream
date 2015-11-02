@@ -17,7 +17,8 @@
     (str "http://data.nba.com/data/10s/html/nbacom/"
          (f/unparse-local-date (f/formatters :year) date-time)
          "/gameinfo/"
-         (f/unparse-local-date (f/formatters :basic-date) date-time)
+         "20151101"
+         ;; (f/unparse-local-date (f/formatters :basic-date) date-time)
          "/"
          game-id
          "_playbyplay_csi.html")))
@@ -38,10 +39,14 @@
              (map (fn [event]
                     (remove #(= String (class %)) event)))
              (map table-record->event-string))))
-
 ;; DIFF MACHINE
 
 (def last-pbp (atom []))
+
+;; (map (fn [event num]
+;;        (assoc {}
+;;               :content event
+;;               :event-num num)) old-pbp (range))
 
 (defn- raw-pbp->new-pbp-events
   "accepts a play-by-play list and compares to last saved pbp list
@@ -49,8 +54,11 @@
   [new-pbp-xs]
   (let [new-events (->> (data/diff @last-pbp new-pbp-xs)
                         (second)
-                        (remove nil?))]
-    (println new-events)
+                        (partition-by #(nil? %)) ; HACK to avoid duplicates caused by updated pbp events. 
+                        (last)
+                        (vec))]
+    (println "last-pbp: " @last-pbp)
+    (println "new-events: " new-events)
     (swap! last-pbp concat new-events) ; note SIDE-EFFECT -- also, is concat bad?
     new-events))
 
