@@ -38,7 +38,11 @@
              (map :content)
              (map (fn [event]
                     (remove #(= String (class %)) event)))
-             (map table-record->event-string))))
+             (map table-record->event-string)
+             (map #(assoc {}
+                          :event-num %1
+                          :content %2) (range)))))
+
 ;; DIFF MACHINE
 
 (def last-pbp (atom []))
