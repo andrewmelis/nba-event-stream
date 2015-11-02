@@ -5,17 +5,13 @@
             [nba-harvester.scheduler :as scheduler])
   (:gen-class))
 
-(def a (atom 5))
-
 (defn pbp-forever [team-abbreviation]
   (let [game-id (scoreboard/team->game-id team-abbreviation)]
-    (while (pos? @a)
-      (doall
+    (while (true? true)
+      (doall ; could this be dorun instead?
        (map #(producer/publish-nba-pbp-event team-abbreviation %)
             (pbp/new-play-by-play-events game-id)))
-       (Thread/sleep 5000)
-       (swap! a dec)
-       (println @a))))
+      (Thread/sleep 5000))))
 
 (defn -main
   "I don't do a whole lot ... yet."

@@ -17,11 +17,9 @@
     (str "http://data.nba.com/data/10s/html/nbacom/"
          (f/unparse-local-date (f/formatters :year) date-time)
          "/gameinfo/"
-         "20151031"
-         ;; (f/unparse-local-date (f/formatters :basic-date) date-time)
+         (f/unparse-local-date (f/formatters :basic-date) date-time)
          "/"
-         "0021500038"
-         ;; game-id
+         game-id
          "_playbyplay_csi.html")))
 
 ;; eventually turn this into a hash
@@ -52,6 +50,7 @@
   (let [new-events (->> (data/diff @last-pbp new-pbp-xs)
                         (second)
                         (remove nil?))]
+    (println new-events)
     (swap! last-pbp concat new-events) ; note SIDE-EFFECT -- also, is concat bad?
     new-events))
 
