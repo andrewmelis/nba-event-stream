@@ -1,4 +1,4 @@
-(defproject nba-harvester "0.1.0-SNAPSHOT"
+(defproject nba-harvester "0.1.0"
   :description "produces an NBA event stream"
   :url "https://github.com/andrewmelis/nba-event-stream"
   :dependencies [[org.clojure/clojure "1.7.0"]
