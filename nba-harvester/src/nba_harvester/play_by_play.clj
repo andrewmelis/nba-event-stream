@@ -6,7 +6,6 @@
             [cheshire.core :as json]
             [net.cgrand.enlive-html :as html]))
 
-;; url->html-structure
 (defn- fetch-url [url]
   (html/html-resource (java.net.URL. url)))
 
@@ -17,8 +16,7 @@
     (str "http://data.nba.com/data/10s/html/nbacom/"
          (f/unparse-local-date (f/formatters :year) date-time)
          "/gameinfo/"
-         "20151101"
-         ;; (f/unparse-local-date (f/formatters :basic-date) date-time)
+         (f/unparse-local-date (f/formatters :basic-date) date-time)
          "/"
          game-id
          "_playbyplay_csi.html")))
@@ -43,14 +41,9 @@
                           :event-num %1
                           :content %2) (range)))))
 
-;; DIFF MACHINE
+;; DIFF MACHINE - extract me
 
 (def last-pbp (atom ())) ; should this be seq or vector?
-
-;; (map (fn [event num]
-;;        (assoc {}
-;;               :content event
-;;               :event-num num)) old-pbp (range))
 
 (defn- raw-pbp->new-pbp-events
   "accepts a play-by-play list and compares to last saved pbp list
@@ -61,7 +54,6 @@
                      (drop-while #(<= (:event-num %)
                                       (:event-num (last @last-pbp)))
                                  new-pbp-xs))]
-    (println "last-pbp: " @last-pbp)
     (println "new-events: " new-events)
     (swap! last-pbp concat new-events) ; note SIDE-EFFECT -- also, is concat bad?
     new-events))
