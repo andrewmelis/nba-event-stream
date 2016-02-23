@@ -1,13 +1,6 @@
-(ns nba-twitter-pbp.logger
+(ns nba-twitter-pbp.components.logger
   (:require [com.stuartsierra.component :as component]
             [clojure.core.async :refer [chan <!! >!! go go-loop <! >! pipeline]]))
-
-(defn async-tester
-  [chan msg]
-  (go
-    (dotimes [n 100]
-      (let [msg (or msg "happy Clojure bug awesome cool ")]
-        (>! chan (str msg n))))))
 
 (defn process-messages
   "for now, prints out messages. nothing special. `status` is an atom"
