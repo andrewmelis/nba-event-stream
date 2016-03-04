@@ -19,39 +19,29 @@
   (statuses-update :oauth-creds creds
                    :params {:status msg}))
 
-(defn publish-once
-  [creds chan]
-  (go
-    (let [val (<! chan)]
-      (tweet creds val))))
-
-(defn publish-until-done
-  [creds chan go]
-  (go-loop []
-    (when-some [val (<! chan)]
-      (tweet creds val))
-    (recur)))
-
 (defn publish-messages
   "creates new status update for every message received"
   [creds status msg-chan]
   (go-loop []
     (when-some [val (<! msg-chan)]
-      (tweet creds val))
-    (when (= :running @status) (recur))))
+      (println "twitter received: " val)
+      (tweet creds val)
+      (when (= :running @status) (recur))))) ; off-by-one error here. doesn't check again when it receives a message
 
 (defrecord TwitterPublisher [twitter-creds status msg-chan]
   component/Lifecycle
   (start [component]
-    (let [creds (make-twitter-creds twitter-creds)]
-      (reset! (:status component) :running)
-      ;; (publish-messages twitter-creds status msg-chan)
-      ;; (publish-until-done twitter-creds msg-chan true)
-      (publish-once twitter-creds msg-chan)
+    (if (not= :running @status)
+      (let [creds (make-twitter-creds twitter-creds)]
+        (reset! (:status component) :running)
+        (publish-messages creds status msg-chan)
+        (assoc component :creds creds))
       component))
   (stop [component]
-    (reset! (:status component) :stopped)
-    component))
+    (if (= :running @status)
+      (do (reset! (:status component) :stopped)
+          component)
+      component)))
 
 (defn new-twitter-publisher [twitter-config msg-chan]
   (->TwitterPublisher twitter-config (atom :init) msg-chan))

@@ -14,14 +14,14 @@
    :user-token-secret "KcKWOVX3hz5bKWEgJveQkgUw4yCwSpxKI5kztsxGRGAId"})
 
 (defn system []
-  (let [output-chan (chan 100)
-        input-chan (chan 10 (map clojure.string/upper-case))]
+  (let [output-chan (chan)
+        input-chan (chan (map clojure.string/upper-case))]
     (pipe input-chan output-chan)
     
     (component/system-map
      ;; :logger (logger/new-logger output-chan)
      :twitter (twitter/new-twitter-publisher twitter-creds output-chan)
-     :tester (tester/new-tester input-chan)
+     ;; :tester (tester/new-tester input-chan)
      :exposed input-chan)))
 
 (defn -main
